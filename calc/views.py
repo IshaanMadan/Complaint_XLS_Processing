@@ -139,7 +139,7 @@ def upload(request):
           excel_file = uploaded_file
           xlwriter = pd.ExcelWriter(excel_file, engine='xlsxwriter')
           data.to_excel(xlwriter, sheet_name='Source')
-          new_df.to_excel(xlwriter, sheet_name='As Reported Code')
+          new_df.to_excel(xlwriter, sheet_name='As Reported Source')
           xlwriter.save()
           xlwriter.close()
           excel_file.seek(0)
