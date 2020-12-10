@@ -21,3 +21,8 @@ python3 manage.py runserver
 
 <b>The project will be available at 127.0.0.1:8000/upload.</b>
 
+
+<b> Version  </b>
+
+Python 3.5.2
+
