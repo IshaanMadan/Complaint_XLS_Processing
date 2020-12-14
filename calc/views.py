@@ -7,7 +7,7 @@ import numpy as np
 from .models import Document
 from datetime import date
 from io import StringIO as IO
-from . services import format_Dates,qa_Classification_levels,caseAge_Buckets,timeToFailure_Buckets,install_Complaints,complaint_Regions
+from . services import QA_As_Reported_Code_Formatting,format_Dates,qa_Classification_levels,caseAge_Buckets,timeToFailure_Buckets,install_Complaints,complaint_Regions
 from . services import getIndex, getColumn, getCategory
 
 def home(request):
@@ -37,9 +37,12 @@ def upload(request):
         data=install_Complaints(rowindex,data)
         #Task7
         data=complaint_Regions(rowindex,data)
+      #Task 8
+      new_df=QA_As_Reported_Code_Formatting(data)
       excel_file = uploaded_file
       xlwriter = pd.ExcelWriter(excel_file, engine='xlsxwriter')
       data.to_excel(xlwriter, sheet_name='Source')
+      new_df.to_excel(xlwriter, sheet_name='As Reported Source')
       xlwriter.save()
       xlwriter.close()
       excel_file.seek(0)
