@@ -1,19 +1,12 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from django.core.files.storage import FileSystemStorage
 import pandas as pd
 from django.views.decorators.csrf import csrf_exempt
 import numpy as np
-from .models import Document
 from datetime import date
 from io import StringIO as IO
-from . services import QA_As_Reported_Code_Formatting,format_Dates,qa_Classification_levels,caseAge_Buckets,timeToFailure_Buckets,install_Complaints,complaint_Regions
-from . services import getIndex, getColumn, getCategory
+from . services import *
 
-def home(request):
-  return None
-# from django.views.decorators.csrf import ensure_csrf_cookie
-# @ensure_csrf_cookie
 @csrf_exempt
 def upload(request):
   if request.method == 'POST':
@@ -22,27 +15,34 @@ def upload(request):
     if ext=='xlsx':
       data=pd.read_excel(uploaded_file)
       dates=[item for item in data.columns if 'date'.lower() in item.lower()]
-      date_indexes=[getIndex(date,data) for date in dates]  
+      date_indexes=[get_index(date,data) for date in dates]  
       for rowindex, row in data.iterrows():
-        pass
         #Task 2
-        data=format_Dates(rowindex,data,date_indexes)
+        data=format_dates(rowindex,data,date_indexes)
         #Task 3
-        data=qa_Classification_levels(rowindex,data)
+        data=qa_classification_levels(rowindex,data)
         #Task 4
-        data=caseAge_Buckets(rowindex,data)
+        data=caseage_buckets(rowindex,data)
         #Task5
-        data=timeToFailure_Buckets(rowindex,data)
+        data=time_to_failure_buckets(rowindex,data)
         #Task6
-        data=install_Complaints(rowindex,data)
+        data=install_complaints(rowindex,data)
         #Task7
-        data=complaint_Regions(rowindex,data)
+        data=complaint_regions(rowindex,data)
       #Task 8
-      new_df=QA_As_Reported_Code_Formatting(data)
+      new_df=data.copy()
+      new_df,new_cols=qa_as_reported_code_formatting(data)
+
+      # Retain old columns format with addition of new columns
+      final_cols=list(data.columns)
+      final_cols=final_cols+new_cols
+      new_df = new_df[final_cols]
+      
+      # Excel file creattion
       excel_file = uploaded_file
       xlwriter = pd.ExcelWriter(excel_file, engine='xlsxwriter')
-      data.to_excel(xlwriter, sheet_name='Source')
-      new_df.to_excel(xlwriter, sheet_name='As Reported Source')
+      data.to_excel(xlwriter, sheet_name='Source',index=False)
+      new_df.to_excel(xlwriter, sheet_name='As Reported Source',index=False)
       xlwriter.save()
       xlwriter.close()
       excel_file.seek(0)
