@@ -1,0 +1,11 @@
+
+{% block content %}
+<div align="center">
+  <h2>Upload Excel file</h2>
+  <form action="/upload" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="document">
+    <button type="submit">Upload file</button>
+  </form>
+  </div>
+{% endblock %}
