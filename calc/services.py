@@ -152,7 +152,7 @@ def complaint_regions(rowindex,data):
   if flag==0:
     if pd.isnull(data.loc[rowindex,get_column("account country",data)]):
       data.loc[rowindex,get_column("account country",data)]=data.loc[rowindex,get_column("event country",data)]
-    k=data.loc[rowindex,'Account Country (Page Three)']
+    k=data.loc[rowindex,get_column("account country",data)]
     if pd.notnull(k):
       for i in mapped_regions:
         if k == i['country']:
@@ -199,7 +199,7 @@ def qa_as_reported_code_formatting(data):
   flag=0
   col_not_found=''
   status='found'
-  cols=[get_column("QA As Reported Code (Page Three)",data)]
+  cols=[get_column("QA As Reported Code",data)]
   for c in cols:    
     if c not in data.columns:
       flag=1
