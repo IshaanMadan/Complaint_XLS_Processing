@@ -31,26 +31,26 @@ def upload(request):
         if status=="not found":
           return HttpResponse("{} column not found".format(data))
         #Task 4
-        data=caseage_buckets(rowindex,data)
+        data,status=caseage_buckets(rowindex,data)
         if status=="not found":
           return HttpResponse("{} column not found".format(data))
         #Task5
-        data=time_to_failure_buckets(rowindex,data)
+        data,status=time_to_failure_buckets(rowindex,data)
         if status=="not found":
           return HttpResponse("{} column not found".format(data))
         #Task6
-        data=install_complaints(rowindex,data)
-        if len(data)==0:
-          return HttpResponse("Column not found")
+        data,status=install_complaints(rowindex,data)
+        if status=="not found":
+          return HttpResponse("{} column not found".format(data))
         #Task7
-        data=complaint_regions(rowindex,data)
-        if len(data)==0:
-          return HttpResponse("Column not found")
+        data,status=complaint_regions(rowindex,data)
+        if status=="not found":
+          return HttpResponse("{} column not found".format(data))
       #Task 8
       new_df=data.copy()
-      new_df,new_cols=qa_as_reported_code_formatting(data)
-      if len(new_df)==0:
-          return HttpResponse("Column not found")
+      new_df,new_cols,status=qa_as_reported_code_formatting(data)
+      if status=="not found":
+          return HttpResponse("{} column not found".format(new_df))
       
       # Retain old columns format with addition of new columns
       final_cols=list(data.columns)

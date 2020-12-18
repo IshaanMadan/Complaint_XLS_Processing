@@ -70,12 +70,14 @@ def qa_classification_levels(rowindex,data):
 # Case Age buckets column created from CaseAge column(created from coparision of report run and date originated)  
 def caseage_buckets(rowindex,data):
   flag=0
-  cols=[get_column("Quality Classification",data)]
+  col_not_found=''
+  status='found'
+  cols=[get_column("status",data),get_column("date originated",data)]
   for c in cols:    
-    if c==None:
-      print("hi")
-      print(cols)
+    if c not in data.columns:
       flag=1
+      col_not_found=c
+      status="not found"
       break
   if flag==0:
   
@@ -84,9 +86,9 @@ def caseage_buckets(rowindex,data):
       a=pd.to_datetime(data[get_column("date originated",data)].iloc[rowindex])-pd.to_datetime(data['Report Run'].iloc[rowindex])
       data.loc[rowindex,'Case Age']=abs(a.days)
       data.loc[rowindex,'Case Age Buckets']=get_category(data.loc[rowindex,"Case Age"],'Case Age Buckets')
-    return data
+    return data,status
   else:
-    return ''
+    return col_not_found,status
     
 
 #Empty installed date column filled with shipped date also time to failure column is created
@@ -94,12 +96,14 @@ def caseage_buckets(rowindex,data):
 # time to failure column 
 def time_to_failure_buckets(rowindex,data):
   flag=0
+  col_not_found=''
+  status='found'
   cols=[get_column("Installed On Date",data),get_column("date originated",data)]
   for c in cols:    
-    if c==None:
-      print("hi")
-      print(cols)
+    if c not in data.columns:
       flag=1
+      col_not_found=c
+      status="not found"
       break
   if flag==0:
     if pd.isnull(data.loc[rowindex,get_column("Installed On Date",data)]):
@@ -107,35 +111,43 @@ def time_to_failure_buckets(rowindex,data):
     a=pd.to_datetime(data[get_column("date originated",data)].iloc[rowindex])-pd.to_datetime(data[get_column("Installed On Date",data)].iloc[rowindex])
     data.loc[rowindex,'Time to Failure']=a.days
     data.loc[rowindex,'Time to Failure Buckets']=get_category(data.loc[rowindex,"Time to Failure"],'Time to Failure Buckets')
-    return data
+    return data,status
   else:
-    return ''
+    return col_not_found,status
 
 # Flagged installation complaint in SR Type column
 def install_complaints(rowindex,data):
   flag=0
+  col_not_found=''
+  status='found'
   cols=[get_column("sr type",data)]
   for c in cols:    
-    if c==None:
+    if c not in data.columns:
       flag=1
+      col_not_found=c
+      status="not found"
       break
   if flag==0:
     if "install".lower() in data.loc[rowindex,get_column("sr type",data)].lower():
       data.loc[rowindex,'Installation complaint']="Yes"
     else:
       data.loc[rowindex,'Installation complaint']="No"
-    return data
+    return data,status
   else: 
-    return ''
+    return col_not_found,status
 
 # Map regions from the country list or country code. Also empty account country entries to be
 # filled with event country 
 def complaint_regions(rowindex,data):
   flag=0
+  col_not_found=''
+  status='found'
   cols=[get_column("account country",data),get_column("event country",data)]
   for c in cols:    
-    if c==None:
+    if c not in data.columns:
       flag=1
+      col_not_found=c
+      status="not found"
       break
   if flag==0:
     if pd.isnull(data.loc[rowindex,get_column("account country",data)]):
@@ -147,9 +159,9 @@ def complaint_regions(rowindex,data):
           data.loc[rowindex,'Regions']=i['region']
         elif k == i['code']:
           data.loc[rowindex,'Regions']=i['region']
-    return data
+    return data,status
   else:
-    return ''
+    return col_not_found,status
 #Created rows for 'QA as Reported Code' seprated by ';'
 def explode(df, lst_cols, fill_value='', preserve_index=False):
     # make sure `lst_cols` is list-alike
@@ -185,10 +197,14 @@ def explode(df, lst_cols, fill_value='', preserve_index=False):
 # last two levels is created as well as combined two levels are created.
 def qa_as_reported_code_formatting(data):
   flag=0
+  col_not_found=''
+  status='found'
   cols=[get_column("QA As Reported Code (Page Three)",data)]
   for c in cols:    
-    if c==None:
+    if c not in data.columns:
       flag=1
+      col_not_found=c
+      status="not found"
       break
   if flag==0:
     new_df=data.copy()
@@ -205,6 +221,6 @@ def qa_as_reported_code_formatting(data):
         for qa,level in zip(qa_cat,last_levels):
           new_df.loc[rowindex,qa]=level
     new_cols=['QA As Reported Code (Page Three) (formatted)',qa_cat[0],qa_cat[1],'As Reported Code Combined Level 4 and 5']
-    return new_df,new_cols
+    return new_df,new_cols,status
   else:
-    return '',''    
+    return col_not_found,'',status
