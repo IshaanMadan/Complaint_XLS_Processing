@@ -6,6 +6,8 @@ import numpy as np
 from datetime import date
 from io import StringIO as IO
 from . services import *
+from io import BytesIO
+
 flag=False
 # def home(request):
   # return render(request,'home.html')
@@ -58,17 +60,16 @@ def upload(request):
       new_df = new_df[final_cols]
       
       # Excel file creation
-      excel_file = uploaded_file
-      xlwriter = pd.ExcelWriter(excel_file, engine='xlsxwriter')
-      data.to_excel(xlwriter, sheet_name='Source',index=False)
-      new_df.to_excel(xlwriter, sheet_name='As Reported Source',index=False)
-      xlwriter.save()
-      xlwriter.close()
-      excel_file.seek(0)
-      response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-      response['Content-Disposition'] = 'attachment; filename=source.xlsx'
-      return response
-      # return HttpResponse("Invalid file")
+      with BytesIO() as b:
+        writer = pd.ExcelWriter(b, engine='xlsxwriter')
+        data.to_excel(writer, sheet_name='Source',index=False)
+        new_df.to_excel(writer, sheet_name='As Reported Source',index=False)
+        writer.save()
+        filename = 'source'
+        content_type = 'application/vnd.ms-excel'
+        response = HttpResponse(b.getvalue(), content_type=content_type)
+        response['Content-Disposition'] = 'attachment; filename="' + filename + '.xlsx"'
+        return response   
     else:
       return HttpResponse("Invalid file")
   return render(request,'home.html')
