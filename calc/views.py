@@ -3,11 +3,13 @@ from django.http import HttpResponse
 import pandas as pd
 from django.views.decorators.csrf import csrf_exempt
 import numpy as np
+from django.core.files.storage import FileSystemStorage
 from datetime import date
 from io import StringIO as IO
 from . services import *
 from io import BytesIO
-
+from django.utils.encoding import force_text
+import re
 flag=False
 # def home(request):
   # return render(request,'home.html')
@@ -17,12 +19,26 @@ def upload(request):
     # uploaded_file = request.FILES.get("document")
     uploaded_file = request.FILES["document"]
 
+    #storing
+    fs = FileSystemStorage()
+    uploaded_file.name=uploaded_file.name.replace(" ", "_")
+    print(uploaded_file.name)
+    # filename = fs.save(uploaded_file.name, uploaded_file)
+    # uploaded_file_url = fs.url(filename)
+    # s=uploaded_file_url
+    # uploaded_file_url=uploaded_file_url.replace("%20", " ")
+  
+
 
     # uploaded_file = request.FILES.get("document")
-    print("upfile",uploaded_file.name)
+    # print("upfileurl",uploaded_file_url)
+    # print("upfile",uploaded_file.name)
+    print(uploaded_file)
     ext=uploaded_file.name.split(".")[-1]
     if ext=='xlsx':
-      data=pd.read_excel(uploaded_file)
+      filename = fs.save(uploaded_file.name, uploaded_file)
+      uploaded_file_url = fs.url(filename)
+      data=pd.read_excel(uploaded_file_url)
       dates=[item for item in data.columns if 'date'.lower() in item.lower()]
       date_indexes=[get_index(date,data) for date in dates]  
       for rowindex, row in data.iterrows():

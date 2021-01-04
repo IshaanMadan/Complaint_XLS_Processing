@@ -1,11 +1,97 @@
+{%load static%}
+<html>
+<head>
+<link rel="stylesheet" href="{%static 'css/main.css'%}">
 
-{% block content %}
+</head>
+<style>
+ 
+</style>
 <div align="center">
   <h2>Upload Excel file .</h2>
   <form action="/upload" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="file" name="document">
     <button type="submit">Upload file</button>
+    
   </form>
-  </div>
-{% endblock %}
+</div>
+
+
+    <table id="records_table" border='1' class="styled-table table1">
+      <thead>
+        <tr>
+          <th align='center'>Mandatory Fields</th>
+        </tr>
+      </thead>
+      <tbody class="align">
+        <tr><td>Status</td></tr>
+        <tr><td>Date Originated</td></tr>
+        <tr><td>Date/Time Closed  (Page Three)</td></tr>
+        <tr><td>Date Closed</td></tr>
+        <tr><td>SR Type (Page Three)</td></tr>
+        <tr><td>Quality Classification (Affected Items)</td></tr>
+        <tr><td>Installed On Date (Affected Items)</td></tr>
+        <tr><td>Event Country (Page Three)</td></tr>
+        <tr><td>Account Country (Page Three)</td></tr>
+        <tr><td>QA As Reported Code (Page Three)</td></tr>
+        <tr><td>Initial Review Complete Date (Page Three)</td></tr>
+        <tr><td>Shipped On Date (Affected Items)</td></tr>
+      </tbody>
+    </table>
+    <table id="records_table1" border='1' class="styled-table table2">
+            <thead>
+              <tr>
+                <th>Task Name</th>
+                <th>Task Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Name the Sheet</td>
+                <td>Primary Sheet is to be named "Source"</td>
+              </tr>
+              <tr>
+                <td>Date Fields to be Formatted</td>
+                <td style="max-width:300px"> Date fields within the extract are to be identified and formatting to be done to keep the dates in dd/mm/yyyy format.</td>
+              </tr>
+              <tr>
+                <td>Quality classification to be scrubbed</td>
+                <td style="max-width:300px">"Quality Classification" column within the extract to be identified. Data in Quality Classification will have 5 levels, each level seperated by a "|".  Separate columns are to be created for each Level and are to be named - "Division", "Franchise", "Product Family", "Product"," Quality Site" respectively. </td>
+              </tr>
+              <tr>
+                <td>Open Case Age Buckets to be Formed</td>
+                <td>"Report Run Date" column to be created with the date on which the report is run. A column named "Case Age" to be created to find the difference between  "Date Originated" field and "Report Run Date" fields. 
+
+Then the values are to be grouped in another column named "Case Age Buckets" as following - Below 45 days, 45 to 90 Days, 90 to 120 Days and Above 120 Days. 
+
+Note: This Acitivity is to be performed only on records still open. Compliant Status is not equal to Closed. </td>
+              </tr>
+              <tr>
+                <td>Time to Failure to be calculated</td>
+                <td>"Time to Failure" column to be created  and a comparison of "Installed on Date" Field to "Date Orignated Date" be performed to give "time to failure" date. If "Install Date" is blank, fill values from "Shipped On Date". 
+
+"Time to Failure" column to be created  and a comparison of "Installed on Date" Field to "Date Originated Date" be performed to give "time to failure" date. 
+
+Then, "Time to Failure Buckets" column to be created with Less than "90 Days, 90 to 365 Days, 1 to 2 Years, Above 2 Years" classifications</td>
+              </tr>
+              <tr>
+                <td>Install Complaints to be identified</td>
+                <td>The "SR Type" column is to be searched for the word "install"and if found those records are to be flagged as an installation Complaint. A new column named "Installation complaint" to be created with Yes/No values.</td>
+              </tr>
+              <tr>
+                <td>Complaint Regions to be Mapped</td>
+                <td>If "Account Country" is blank fill values from "Event Country". Master list of regions to be mapped with the Field named "Account Country". Separate Column named "Regions" to be created to capture this information. </td>
+              </tr>
+              <tr>
+                <td>QA As Reported Code Formatting</td>
+                <td>Once the above Tasks(1-7) are complete, a duplicate tab of the "Source" sheet is to be created and named as "As Reported Source" . Formatting for this task is to be performed on the duplicate sheet and the original "Source" sheet is to be protected from this task.
+
+"QA As Reported Code" column within the extract is to be identified. Each row can have multiple Codes. In case of Multiple codes, each code will be seperated by ";". Formatting is to be done to make each row contain only one code.Each code will have 5 levels, each level seperated by a "|". Separate columns are to be created for the last 2 levels of the code and be named as "As Reported Code" .</td>
+              </tr>
+
+
+            </tbody>
+          </table>
+    
+</html>
