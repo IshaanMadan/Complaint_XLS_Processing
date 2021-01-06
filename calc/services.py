@@ -42,9 +42,9 @@ def get_column(column_name,dataframe):
 
 # Convert dates in the dd/mm/yy format
 def format_dates(rowindex,data,date_indexes):
-  for cols in date_indexes:
-    if pd.notnull(data.loc[rowindex,data.columns[cols]]):
-      data.loc[rowindex,data.columns[cols]]=pd.to_datetime(data.loc[rowindex,data.columns[cols]]).strftime('%d/%m/%Y')
+  for index in date_indexes:
+    if pd.notnull(data.loc[rowindex,data.columns[index]]):
+      data.loc[rowindex,data.columns[index]]=pd.to_datetime(data.loc[rowindex,data.columns[index]]).strftime('%d/%m/%Y')
   return data
 
 # Generate levels for the Quality Classification entries
@@ -80,12 +80,12 @@ def caseage_buckets(rowindex,data):
       status="not found"
       break
   if flag==0:
-  
-    if data.loc[rowindex,get_column("status",data)].lower() != 'Closed'.lower():
+    if data.loc[rowindex,'Status']!='Closed':
       data.loc[rowindex,'Report Run']=date.today().strftime("%d/%m/%Y")
-      a=pd.to_datetime(data[get_column("date originated",data)].iloc[rowindex])-pd.to_datetime(data['Report Run'].iloc[rowindex])
-      data.loc[rowindex,'Case Age']=abs(a.days)
-      data.loc[rowindex,'Case Age Buckets']=get_category(data.loc[rowindex,"Case Age"],'Case Age Buckets')
+      diff=pd.to_datetime(pd.to_datetime(data[get_column('date originated',data)].iloc[rowindex]).strftime("%d/%m/%y"))-pd.to_datetime(pd.to_datetime(data["Report Run"].iloc[rowindex]).strftime("%d/%m/%y"))
+      diff=abs(diff)
+      data.loc[rowindex,'Case Age']=int(str(diff).split()[0])
+      data.loc[rowindex,'Case Age Buckets']=get_category(data.loc[rowindex,"Case Age"],'Case Age Buckets')  
     return data,status
   else:
     return col_not_found,status
@@ -107,10 +107,12 @@ def time_to_failure_buckets(rowindex,data):
       break
   if flag==0:
     if pd.isnull(data.loc[rowindex,get_column("Installed On Date",data)]):
-      data.loc[rowindex,get_column("Installed On Date",data)]=data.loc[rowindex,get_column("Shipped On Date",data)]
-    a=pd.to_datetime(data[get_column("date originated",data)].iloc[rowindex])-pd.to_datetime(data[get_column("Installed On Date",data)].iloc[rowindex])
-    data.loc[rowindex,'Time to Failure']=a.days
-    data.loc[rowindex,'Time to Failure Buckets']=get_category(data.loc[rowindex,"Time to Failure"],'Time to Failure Buckets')
+      data.loc[rowindex,get_column("Installed On Date",data)]=data.loc[rowindex,get_column("Shipped on Date",data)]
+    if pd.notnull(data.loc[rowindex,get_column("date originated",data)] and data.loc[rowindex,get_column("Installed On Date",data)]):
+      diff=pd.to_datetime(pd.to_datetime(data[get_column("date originated",data)].iloc[rowindex]).strftime("%d/%m/%y"))-pd.to_datetime(pd.to_datetime(data[get_column("Installed On Date",data)].iloc[rowindex]).strftime("%d/%m/%y"))
+      diff=abs(diff)
+      data.loc[rowindex,'Time to Failure']=int(str(diff).split()[0])
+      data.loc[rowindex,'Time to Failure Buckets']=get_category(data.loc[rowindex,"Time to Failure"],'Time to Failure Buckets')
     return data,status
   else:
     return col_not_found,status
@@ -195,6 +197,10 @@ def explode(df, lst_cols, fill_value='', preserve_index=False):
     return res
 # Created rows for 'QA as Reported Code' seprated by ';'. Also columns for 
 # last two levels is created as well as combined two levels are created.
+def edit_col(column):
+  column=column.replace(" ", "_")
+  return column
+
 def qa_as_reported_code_formatting(data):
   flag=0
   col_not_found=''
@@ -208,19 +214,19 @@ def qa_as_reported_code_formatting(data):
       break
   if flag==0:
     new_df=data.copy()
-    new_df["QA As Reported Code (Page Three) (formatted)"]=new_df['QA As Reported Code (Page Three)']
-    new_df['QA As Reported Code (Page Three) (formatted)']=new_df['QA As Reported Code (Page Three) (formatted)'].fillna('-199')
-    new_df=explode(new_df.assign(q_a=new_df['QA As Reported Code (Page Three) (formatted)'].str.split(';')), 'q_a')
-    new_df['QA As Reported Code (Page Three) (formatted)']=new_df['q_a']
-    new_df['QA As Reported Code (Page Three) (formatted)'] = new_df['QA As Reported Code (Page Three) (formatted)'].replace('-199',np.nan)
+    new_df[edit_col(get_column("QA As Reported Code",new_df)+"(formatted)")]=new_df[get_column("QA As Reported Code",new_df)]
+    new_df[edit_col(get_column("QA As Reported Code",new_df)+"(formatted)")]=new_df[edit_col(get_column("QA As Reported Code",new_df)+"(formatted)")].fillna('-199')
+    new_df=explode(new_df.assign(q_a=new_df[edit_col(get_column("QA As Reported Code",new_df)+"(formatted)")].str.split(';')), 'q_a')
+    new_df[edit_col(get_column("QA As Reported Code",new_df)+"(formatted)")]=new_df['q_a']
+    new_df[edit_col(get_column("QA As Reported Code",new_df)+"(formatted)")] = new_df[edit_col(get_column("QA As Reported Code",new_df)+"(formatted)")].replace('-199',np.nan)
     new_df.drop('q_a',axis=1,inplace=True)
     for rowindex,row in new_df.iterrows():
-      if pd.isnull(new_df.loc[rowindex,'QA As Reported Code (Page Three) (formatted)'])==False:
-        last_levels=new_df.loc[rowindex,'QA As Reported Code (Page Three) (formatted)'].split('|')[-2:]
+      if pd.isnull(new_df.loc[rowindex,edit_col(get_column("QA As Reported Code",new_df)+"(formatted)")])==False:
+        last_levels=new_df.loc[rowindex,edit_col(get_column("QA As Reported Code",new_df)+"(formatted)")].split('|')[-2:]
         new_df.loc[rowindex,'As Reported Code Combined Level 4 and 5']='|'.join(last_levels)
         for qa,level in zip(qa_cat,last_levels):
           new_df.loc[rowindex,qa]=level
-    new_cols=['QA As Reported Code (Page Three) (formatted)',qa_cat[0],qa_cat[1],'As Reported Code Combined Level 4 and 5']
+    new_cols=[edit_col(get_column("QA As Reported Code",new_df)+"(formatted)"),qa_cat[0],qa_cat[1],'As Reported Code Combined Level 4 and 5']
     return new_df,new_cols,status
   else:
     return col_not_found,'',status

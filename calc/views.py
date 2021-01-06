@@ -40,7 +40,8 @@ def upload(request):
       uploaded_file_url = fs.url(filename)
       data=pd.read_excel(uploaded_file_url)
       dates=[item for item in data.columns if 'date'.lower() in item.lower()]
-      date_indexes=[get_index(date,data) for date in dates]  
+      date_indexes=[get_index(date,data) for date in dates] 
+      print("date indexes",[data.columns[i] for i in date_indexes]) 
       for rowindex, row in data.iterrows():
         #Task 2
         data=format_dates(rowindex,data,date_indexes)

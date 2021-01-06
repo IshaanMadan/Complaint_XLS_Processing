@@ -36,7 +36,6 @@ text-align: center;}
   position:absolute;
       margin-left: 30px;
 
-  {% comment %} margin-right:40px {% endcomment %}
 }
 .table2{
   float:right;
